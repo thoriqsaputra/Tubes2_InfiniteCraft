@@ -1,70 +1,92 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"strings"
+    "fmt"
+    "net/http"
+    "strings"
 
-	"github.com/PuerkitoBio/goquery"
+    "github.com/PuerkitoBio/goquery"
 )
 
-type PageLinks map[string][]string
+type Node struct {
+    Name  string
+    Path  []string
+    Depth int
+}
 
-    func fetchLinks(pageNames []string) (PageLinks, error) {
-        links := make(PageLinks)
-        errs := make(chan error)
-        linkCh := make(chan struct {
-            pageName string
-            links    []string
-        })
+func fetchPageLinks(pageName string) ([]string, error) {
+    res, err := http.Get("https://en.wikipedia.org/wiki/" + pageName)
+    if err != nil {
+        return nil, err
+    }
+    defer res.Body.Close()
 
-        for _, pageName := range pageNames {
-            go func(pageName string) {
-                pageLinks, err := fetchPageLinks(pageName)
-                if err != nil {
-                    errs <- err
-                    return
+    doc, err := goquery.NewDocumentFromReader(res.Body)
+    if err != nil {
+        return nil, err
+    }
+
+    var links []string
+    doc.Find("div#bodyContent p a[href^='/wiki/']").Each(func(i int, s *goquery.Selection) {
+        href, exists := s.Attr("href")
+        if exists && !strings.Contains(href, ":") {
+            pageTitle := strings.TrimPrefix(href, "/wiki/")
+            links = append(links, pageTitle)
+        }
+    })
+
+    return links, nil
+}
+
+var linkCache = make(map[string][]string)
+
+func fetchPageLinksCached(pageName string) ([]string, error) {
+    if links, ok := linkCache[pageName]; ok {
+        return links, nil
+    }
+
+    links, err := fetchPageLinks(pageName)
+    if err != nil {
+        return nil, err
+    }
+
+    linkCache[pageName] = links
+    return links, nil
+}
+
+func DFS(start, goal string, maxDepth int) []string {
+    stack := []Node{{start, []string{start}, 0}}
+    visited := map[string]bool{start: true}
+
+    for len(stack) > 0 {
+        node := stack[len(stack)-1]
+        stack = stack[:len(stack)-1]
+
+
+
+        if node.Name == goal {
+            return node.Path
+        }
+
+        if node.Depth < maxDepth {
+            links, _ := fetchPageLinksCached(node.Name)
+            for _, link := range links {
+                if !visited[link] {
+                    visited[link] = true
+                    stack = append(stack, Node{link, append(node.Path, link), node.Depth + 1})
                 }
-                linkCh <- struct {
-                    pageName string
-                    links    []string
-                }{pageName, pageLinks}
-            }(pageName)
-        }
-
-        for i := 0; i < len(pageNames); i++ {
-            select {
-            case err := <-errs:
-                return nil, err
-            case result := <-linkCh:
-                links[result.pageName] = result.links
             }
         }
-
-        return links, nil
     }
 
-    func fetchPageLinks(pageName string) ([]string, error) {
-        res, err := http.Get("https://en.wikipedia.org/wiki/" + pageName)
-        if err != nil {
-            return nil, err
-        }
-        defer res.Body.Close()
+    return nil
+}
 
-        doc, err := goquery.NewDocumentFromReader(res.Body)
-        if err != nil {
-            return nil, err
-        }
-
-        var links []string
-        doc.Find("#bodyContent a").Each(func(i int, s *goquery.Selection) {
-            href, exists := s.Attr("href")
-            if exists && strings.HasPrefix(href, "/wiki/") && !strings.Contains(href, ":") {
-                pageTitle := strings.TrimPrefix(href, "/wiki/")
-                links = append(links, pageTitle)
-            }
-        })
-
-        return links, nil
+func main() {
+    path := DFS("Basketball", "Joko_Widodo", 2)
+    if path == nil {
+        fmt.Println("No path found")
+    } else {
+        fmt.Println("Path found:", path)
     }
-
+}
