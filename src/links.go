@@ -10,12 +10,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Node struct {
-	Name  string
-	Path  []string
-	Depth int
-}
-
 type Cache struct {
     maxEntries int
     ll         *list.List
@@ -81,7 +75,7 @@ func (c *Cache) removeElement(e *list.Element) {
 
 var httpClient = &http.Client{}
 
-func fetchPageLinks(pageName string) ([]string, error) {
+func fetchPageLinks(pageName string) (map[string]struct{}, error) {
 	res, err := httpClient.Get("https://en.wikipedia.org/wiki/" + pageName)
 	if err != nil {
 		return nil, err
@@ -93,14 +87,14 @@ func fetchPageLinks(pageName string) ([]string, error) {
 		return nil, err
 	}
 
-	var links []string
+	links := make(map[string]struct{})
 	doc.Find("div#bodyContent p a[href^='/wiki/']").Each(func(i int, s *goquery.Selection) {
 		// Exclude links within the references section and external links section
 		if s.Closest("div.reflist").Length() == 0 && s.Closest("span#External_links").Length() == 0 {
 			href, exists := s.Attr("href")
 			if exists && !strings.Contains(href, ":") {
 				pageTitle := strings.TrimPrefix(href, "/wiki/")
-				links = append(links, pageTitle)
+				links[pageTitle] = struct{}{}
 			}
 		}
 	})
@@ -110,10 +104,10 @@ func fetchPageLinks(pageName string) ([]string, error) {
 
 var linkCache = New(1000);
 
-func fetchPageLinksCached(pageName string) ([]string, error) {
+func fetchPageLinksCached(pageName string) (map[string]struct{}, error) {
     links, ok := linkCache.Get(pageName)
     if ok {
-        return links.([]string), nil
+        return links.(map[string]struct{}), nil
     }
 
     links, err := fetchPageLinks(pageName)
@@ -122,52 +116,69 @@ func fetchPageLinksCached(pageName string) ([]string, error) {
     }
 
     linkCache.Add(pageName, links)
-    return links.([]string), nil
+    return links.(map[string]struct{}), nil
 }
 
-func DFS(start, goal string, maxDepth int) []string {
-	stack := []Node{{start, []string{start}, 0}}
-	visited := map[string]bool{start: true}
+type Node struct {
+    Name     string
+    Path     []string
+    Depth    int
+    Children []string
+}
 
-	for len(stack) > 0 {
-		node := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
+func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
+    stack := []*Node{{start, []string{start}, 0, nil}}
 
-		if node.Name == goal {
-			return node.Path
-		}
+    for len(stack) > 0 {
+        node := stack[len(stack)-1]
+        stack = stack[:len(stack)-1]
 
-		if node.Depth < maxDepth {
-			links, err := fetchPageLinksCached(node.Name)
-			if err != nil {
-				log.Printf("Failed to fetch links for page %s: %v", node.Name, err)
-				continue
-			}
-			for _, link := range links {
-				if !visited[link] {
-					visited[link] = true
-					newNode := Node{link, append(node.Path, link), node.Depth + 1}
-					stack = append(stack, newNode)
-				}
-			}
-		}
-	}
+        if node.Name == goal {
+            return node
+        }
 
-	return nil
+        if node.Depth < maxDepth {
+            if node.Children == nil {
+                links, err := fetchPageLinksCached(node.Name)
+                if err != nil {
+                    log.Printf("Failed to fetch links for page %s: %v", node.Name, err)
+                    continue
+                }
+                node.Children = make([]string, 0, len(links))
+                for link := range links {
+                    node.Children = append(node.Children, link)
+                }
+            }
+
+            for _, link := range node.Children {
+                if !visited[link] {
+                    visited[link] = true
+                    newPath := append(node.Path[:], link)
+                    newNode := &Node{link, newPath, node.Depth + 1, nil}
+                    stack = append(stack, newNode)
+                }
+            }
+            node.Children = node.Children[:0] // Clear the children slice for reuse
+        }
+    }
+
+    return nil
 }
 
 func IDS(start, goal string, maxDepth int) []string {
-	for depth := 0; depth <= maxDepth; depth++ {
-		path := DFS(start, goal, depth)
-		if path != nil {
-			return path
-		}
-	}
-	return nil
+    for depth := 0; depth <= maxDepth; depth++ {
+        visited := make(map[string]bool)
+        visited[start] = true
+        node := DFS(start, goal, depth, visited)
+        if node != nil {
+            return node.Path
+        }
+    }
+    return nil
 }
 
 func main() {
-	path := IDS("Basketball", "Joko_Widodo", 3)
+	path := IDS("Disney_Channel", "Paris", 3)
 	if path == nil {
 		fmt.Println("No path found")
 	} else {
