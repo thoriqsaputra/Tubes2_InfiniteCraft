@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+    "time"
 	"log"
-	"net/http"
 	"strings"
     "container/list"
+    "github.com/gocolly/colly"
 
-	"github.com/PuerkitoBio/goquery"
 )
 
 type Cache struct {
@@ -73,36 +73,28 @@ func (c *Cache) removeElement(e *list.Element) {
     delete(c.cache, kv.key)
 }
 
-var httpClient = &http.Client{}
-
 func fetchPageLinks(pageName string) (map[string]struct{}, error) {
-	res, err := httpClient.Get("https://en.wikipedia.org/wiki/" + pageName)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
+    c := colly.NewCollector()
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return nil, err
-	}
+    links := make(map[string]struct{})
 
-	links := make(map[string]struct{})
-	doc.Find("div#bodyContent p a[href^='/wiki/']").Each(func(i int, s *goquery.Selection) {
-		// Exclude links within the references section and external links section
-		if s.Closest("div.reflist").Length() == 0 && s.Closest("span#External_links").Length() == 0 {
-			href, exists := s.Attr("href")
-			if exists && !strings.Contains(href, ":") {
-				pageTitle := strings.TrimPrefix(href, "/wiki/")
-				links[pageTitle] = struct{}{}
-			}
-		}
-	})
+    c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+        link := e.Attr("href")
+        if strings.HasPrefix(link, "/wiki/") && !strings.Contains(link, ":") && !strings.Contains(link, "Category:") {
+            pageTitle := strings.TrimPrefix(link, "/wiki/")
+            links[pageTitle] = struct{}{}
+        }
+    })
 
-	return links, nil
+    err := c.Visit("https://en.wikipedia.org/wiki/" + pageName)
+    if err != nil {
+        return nil, err
+    }
+
+    return links, nil
 }
 
-var linkCache = New(1000);
+var linkCache = New(5000);
 
 func fetchPageLinksCached(pageName string) (map[string]struct{}, error) {
     links, ok := linkCache.Get(pageName)
@@ -158,7 +150,7 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
                     stack = append(stack, newNode)
                 }
             }
-            node.Children = node.Children[:0] // Clear the children slice for reuse
+            node.Children = node.Children[:0] 
         }
     }
 
@@ -178,10 +170,14 @@ func IDS(start, goal string, maxDepth int) []string {
 }
 
 func main() {
-	path := IDS("Disney_Channel", "Paris", 3)
+    start := time.Now()
+	path := IDS("Love", "Heart", 3)
+
+    elapsed := time.Since(start)
 	if path == nil {
 		fmt.Println("No path found")
 	} else {
 		fmt.Println("Path found:", path)
 	}
+    fmt.Println("Time taken:", elapsed)
 }
