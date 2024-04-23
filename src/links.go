@@ -118,6 +118,8 @@ type Node struct {
     Children []string
 }
 
+var articlesChecked int
+
 func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
     stack := []*Node{{start, []string{start}, 0, nil}}
 
@@ -145,6 +147,7 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
             for _, link := range node.Children {
                 if !visited[link] {
                     visited[link] = true
+                    articlesChecked++
                     newPath := append(node.Path[:], link)
                     newNode := &Node{link, newPath, node.Depth + 1, nil}
                     stack = append(stack, newNode)
@@ -171,13 +174,25 @@ func IDS(start, goal string, maxDepth int) []string {
 
 func main() {
     start := time.Now()
-	path := IDS("Love", "Heart", 3)
+    path := IDS("Joko_Widodo", "Russia", 3)
 
     elapsed := time.Since(start)
-	if path == nil {
-		fmt.Println("No path found")
-	} else {
-		fmt.Println("Path found:", path)
-	}
-    fmt.Println("Time taken:", elapsed)
+    fmt.Println("Time taken:", elapsed.Milliseconds(), "ms")
+
+    // Jumlah artikel yang diperiksa
+    fmt.Println("Jumlah artikel yang diperiksa:", articlesChecked)
+
+    // Jumlah artikel yang dilalui
+    if path != nil {
+        fmt.Println("Jumlah artikel yang dilalui:", len(path)-1)
+    } else {
+        fmt.Println("Jumlah artikel yang dilalui: 0")
+    }
+
+    // Rute
+    if path != nil {
+        fmt.Println("Rute:", strings.Join(path, " -> "))
+    } else {
+        fmt.Println("Rute: No path found")
+    }
 }
