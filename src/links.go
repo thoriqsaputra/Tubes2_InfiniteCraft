@@ -118,10 +118,35 @@ type Node struct {
     Children []string
 }
 
+func worker(id int, jobs <-chan string, results chan<- *Node) {
+    for pageName := range jobs {
+        links, err := fetchPageLinksCached(pageName)
+        if err != nil {
+            log.Printf("Failed to fetch links for page %s: %v", pageName, err)
+            continue
+        }
+        children := make([]string, 0, len(links))
+        for link := range links {
+            children = append(children, link)
+        }
+        results <- &Node{pageName, nil, 0, children}
+    }
+}
+
+
 var articlesChecked int
 
 func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
     stack := []*Node{{start, []string{start}, 0, nil}}
+
+    // Create a channel for jobs and a channel for results
+    jobs := make(chan string, 100)
+    results := make(chan *Node, 100)
+
+    // Start a fixed number of worker goroutines
+    for w := 1; w <= 10; w++ {
+        go worker(w, jobs, results)
+    }
 
     for len(stack) > 0 {
         node := stack[len(stack)-1]
@@ -133,22 +158,20 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
 
         if node.Depth < maxDepth {
             if node.Children == nil {
-                links, err := fetchPageLinksCached(node.Name)
-                if err != nil {
-                    log.Printf("Failed to fetch links for page %s: %v", node.Name, err)
-                    continue
-                }
-                node.Children = make([]string, 0, len(links))
-                for link := range links {
-                    node.Children = append(node.Children, link)
-                }
+                // Send the page name to the jobs channel
+                jobs <- node.Name
+                // Receive the result from the results channel
+                newNode := <-results
+                node.Children = newNode.Children
             }
 
             for _, link := range node.Children {
                 if !visited[link] {
                     visited[link] = true
                     articlesChecked++
-                    newPath := append(node.Path[:], link)
+                    newPath := make([]string, len(node.Path)) // Create a new slice to hold the path
+                    copy(newPath, node.Path) // Copy the current node's path into the new slice
+                    newPath = append(newPath, link) // Append the link to the new path
                     newNode := &Node{link, newPath, node.Depth + 1, nil}
                     stack = append(stack, newNode)
                 }
@@ -159,6 +182,7 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
 
     return nil
 }
+
 
 func IDS(start, goal string, maxDepth int) []string {
     for depth := 0; depth <= maxDepth; depth++ {
@@ -174,7 +198,7 @@ func IDS(start, goal string, maxDepth int) []string {
 
 func main() {
     start := time.Now()
-    path := IDS("Joko_Widodo", "Russia", 3)
+    path := IDS("Jokowi", "Basketball", 3)
 
     elapsed := time.Since(start)
     fmt.Println("Time taken:", elapsed.Milliseconds(), "ms")
