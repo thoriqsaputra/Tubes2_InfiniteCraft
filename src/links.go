@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-    "time"
 	"log"
 	"strings"
     "container/list"
@@ -80,10 +78,14 @@ func fetchPageLinks(pageName string) (map[string]struct{}, error) {
 
     c.OnHTML("a[href]", func(e *colly.HTMLElement) {
         link := e.Attr("href")
-        if strings.HasPrefix(link, "/wiki/") && !strings.Contains(link, ":") && !strings.Contains(link, "Category:") {
-            pageTitle := strings.TrimPrefix(link, "/wiki/")
-            links[pageTitle] = struct{}{}
+        if !strings.HasPrefix(link, "/wiki/") {
+            return
         }
+        if strings.Contains(link, ":") || strings.Contains(link, "Category:") {
+            return
+        }
+        pageTitle := strings.TrimPrefix(link, "/wiki/")
+        links[pageTitle] = struct{}{}
     })
 
     err := c.Visit("https://en.wikipedia.org/wiki/" + pageName)
@@ -118,7 +120,7 @@ type Node struct {
     Children []string
 }
 
-func worker(id int, jobs <-chan string, results chan<- *Node) {
+func workers(id int, jobs <-chan string, results chan<- *Node) {
     for pageName := range jobs {
         links, err := fetchPageLinksCached(pageName)
         if err != nil {
@@ -145,7 +147,7 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
 
     // Start a fixed number of worker goroutines
     for w := 1; w <= 10; w++ {
-        go worker(w, jobs, results)
+        go workers(w, jobs, results)
     }
 
     for len(stack) > 0 {
@@ -196,27 +198,27 @@ func IDS(start, goal string, maxDepth int) []string {
     return nil
 }
 
-func main() {
-    start := time.Now()
-    path := IDS("Jokowi", "Basketball", 3)
+// func main() {
+//     start := time.Now()
+//     path := IDS("Basketball", "Mark_Cuban", 3)
 
-    elapsed := time.Since(start)
-    fmt.Println("Time taken:", elapsed.Milliseconds(), "ms")
+//     elapsed := time.Since(start)
+//     fmt.Println("Time taken:", elapsed.Milliseconds(), "ms")
 
-    // Jumlah artikel yang diperiksa
-    fmt.Println("Jumlah artikel yang diperiksa:", articlesChecked)
+//     // Jumlah artikel yang diperiksa
+//     fmt.Println("Jumlah artikel yang diperiksa:", articlesChecked)
 
-    // Jumlah artikel yang dilalui
-    if path != nil {
-        fmt.Println("Jumlah artikel yang dilalui:", len(path)-1)
-    } else {
-        fmt.Println("Jumlah artikel yang dilalui: 0")
-    }
+//     // Jumlah artikel yang dilalui
+//     if path != nil {
+//         fmt.Println("Jumlah artikel yang dilalui:", len(path)-1)
+//     } else {
+//         fmt.Println("Jumlah artikel yang dilalui: 0")
+//     }
 
-    // Rute
-    if path != nil {
-        fmt.Println("Rute:", strings.Join(path, " -> "))
-    } else {
-        fmt.Println("Rute: No path found")
-    }
-}
+//     // Rute
+//     if path != nil {
+//         fmt.Println("Rute:", strings.Join(path, " -> "))
+//     } else {
+//         fmt.Println("Rute: No path found")
+//     }
+// }

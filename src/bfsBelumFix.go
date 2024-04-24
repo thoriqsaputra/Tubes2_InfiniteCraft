@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -159,23 +158,23 @@ func fetchPath(startTitle, targetTitle string, visited map[string]bool) []string
 	return nil
 }
 
-func main() {
-	args := os.Args[1:]
-	if len(args) != 2 {
-		fmt.Println("Usage: go run main.go <start_article_title> <target_article_title>")
-		return
-	}
+// func main() {
+// 	args := os.Args[1:]
+// 	if len(args) != 2 {
+// 		fmt.Println("Usage: go run main.go <start_article_title> <target_article_title>")
+// 		return
+// 	}
 
-	startArticle := args[0]
-	targetArticle := args[1]
+// 	startArticle := args[0]
+// 	targetArticle := args[1]
 
-	path, numChecked, duration, err := bfs(startArticle, targetArticle)
-	if err != nil {
-		log.Fatal(err)
-	}
+// 	path, numChecked, duration, err := bfs(startArticle, targetArticle)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	fmt.Printf("Number of articles checked: %d\n", numChecked)
-	fmt.Printf("Number of articles traversed: %d\n", len(path))
-	fmt.Printf("Route: %s\n", strings.Join(path, " -> "))
-	fmt.Printf("Time taken: %v\n", duration)
-}
+// 	fmt.Printf("Number of articles checked: %d\n", numChecked)
+// 	fmt.Printf("Number of articles traversed: %d\n", len(path))
+// 	fmt.Printf("Route: %s\n", strings.Join(path, " -> "))
+// 	fmt.Printf("Time taken: %v\n", duration)
+// }
