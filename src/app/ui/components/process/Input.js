@@ -26,7 +26,6 @@ const Input = ({ placeholder, handleChange, inputValue, language, disable }) => 
         '&gpslimit=5' +
         '&origin=*';
 
-
     useEffect(() => {
         if (inputValue !== "" && !recommendationClicked) {
             fetch(wikipediaEndpoint + wikipediaParams)
@@ -39,8 +38,6 @@ const Input = ({ placeholder, handleChange, inputValue, language, disable }) => 
             setShowRecommendation(false);
         }
         setRecommendationClicked(false);
-
-        console.log(searchResults)
     }, [inputValue, language]);
 
     const handleRecommendationClick = (title) => {

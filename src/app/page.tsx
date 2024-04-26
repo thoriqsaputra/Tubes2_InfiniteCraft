@@ -1,10 +1,48 @@
+'use client';
+
 import Image from "next/image";
 import { racing, kotta } from "./ui/fonts";
 import Button from "./ui/components/Button";
 import ProcessForm from "./ui/components/process/form";
 import Result from "./ui/components/Result/Result";
 
+import { useRef, useState, useEffect } from "react";
+
 export default function Home() {
+  type ProcessResult = {
+    Path: string[];
+    Links: number;
+    Duration: number;
+    Degrees: number;
+  };
+
+  const resultSectionRef = useRef<HTMLDivElement>(null);
+  const [showLoading, setShowLoading] = useState(false);
+  const [isProcess, setIsProcess] = useState(false);
+  const [ProcessResult, setProcessResult] = useState({});
+  const [Method, setMethod] = useState("");
+
+  const handleMethod = (method : string) => {
+    setMethod(method);
+    console.log(Method);
+  }
+
+  useEffect(() => {
+    if (isProcess && resultSectionRef.current) {
+      resultSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isProcess]);
+
+  const handleLoading = (load : boolean) => {
+    setShowLoading(load);
+    setIsProcess(true);
+  };
+
+  const handleProcess = (result : ProcessResult) => {
+    setProcessResult(result);
+    setShowLoading(false);
+  }
+
   return (
     <main>
       <section className="min-h-screen relative bg-gradient-to-b from-[#5356FF] via-[#378CE7] to-[#59D5E0]">
@@ -40,10 +78,12 @@ export default function Home() {
               Exploring the Wikipedia Universe
             </h2>
           </div>
-          <ProcessForm/>
+          <ProcessForm onResult={handleProcess} showLoading={handleLoading} onMethod={handleMethod} />
         </div>
       </section>
-      <Result/>
+      <div ref={resultSectionRef}>
+        {isProcess && <Result Result={ProcessResult} showLoading={showLoading} method={Method}/>}
+      </div>
     </main>
   );
 }

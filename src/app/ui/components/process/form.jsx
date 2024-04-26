@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import RadioSolution from './RadioSolution';
 
 
-export default function ProcessForm() {
+export default function ProcessForm({onResult, onMethod, showLoading}) {
     const [startValue, setStartValue] = useState("");
     const [destinationValue, setDestinationValue] = useState("");
     const [disabled, setDisabled] = useState(true);
@@ -17,6 +17,37 @@ export default function ProcessForm() {
     const [selectedLanguage, setSelectedLanguage] = useState(null);
     const [disableLanguage, setDisableLanguage] = useState(true);
     const [selectedSolution, setSelectedSolution] = useState(null);
+
+    const handleSubmit = async (e) => {
+        onMethod(selectedMethod);
+        showLoading(true);
+        e.preventDefault();
+        try {
+            const data = {
+                start: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+startValue,
+                destination: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+destinationValue,
+                method: selectedMethod,
+            };
+            const response = await fetch('http://localhost:8080/pathfinder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            
+            if (!response.ok) {
+                const message = `An error has occured: ${response.status}`;
+                throw new Error(message);
+            }
+            const result = await response.json();
+            onResult(result);
+            showLoading(false);
+            console.log(result);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
 
     useEffect(() => {
         setDisabled(startValue.trim() === "" || selectedMethod === null || selectedLanguage === null);
@@ -48,6 +79,7 @@ export default function ProcessForm() {
     };  
 
     const handleClick = (e) => {
+        handleSubmit(e);
         setClicked(true);
         setTimeout(() => {
           setClicked(false);
@@ -82,6 +114,7 @@ export default function ProcessForm() {
             </div>
             <div>
                 <button
+                type='submit'
                 disabled={disabled}
                 className={`bg-gradient-to-br from-amber-500 to-red-400 outline-2 outline shadow-lg text-white text-xl md:text-3xl py-1 px-2 font-semibold md:py-2 md:px-4 rounded-lg transition ease-in-out duration-500 
                 ${clicked ? 'scale-95 ' : ''} hover:from-green-400 hover:to-blue-400 focus:outline-none`}

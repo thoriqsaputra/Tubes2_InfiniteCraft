@@ -5,8 +5,6 @@ import (
 	"log"
 	"strings"
 	"sync"
-
-
 	"github.com/gocolly/colly"
 )
 

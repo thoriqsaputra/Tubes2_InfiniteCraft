@@ -1,28 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function Result() {
 
-    const articleList = [
-        [
-            {
-                title: "Article 1",
-                url: "https://www.google.com",
-                image: "/no-image.gif"
-            },
-            {
-                title: "Article 2",
-                url: "https://www.example.com",
-                image: "/no-image.gif"
-            },
-            {
-                title: "Article 3",
-                url: "https://www.wikipedia.org",
-                image: "/no-image.gif"
-            }
-        ],
-    ];
-    
+export default function Result({Result, showLoading, method}) {
+
+    const articleList = Result.Path;
+
     return (
         <main className='min-h-screen bg-gradient-radial from-amber-600 to-amber-300 relative'>
             <div className="curve">
@@ -33,12 +16,17 @@ export default function Result() {
             </svg>
             </div>
             <div className="min-h-screen flex items-center justify-center">
-            <div className="flex flex-col gap-8 justify-center items-center px-4 my-[100px]">
+                {showLoading ? (
+                    <Image alt="loading" src={method === "BFS" ? '/f1.gif' : '/mclaren.gif'} width={400} height={400}
+                    className='rounded-full' />
+                ) : 
+                (
+                <div className="flex flex-col gap-8 justify-center items-center px-4 py-[100px]">
                 <div className="bg-blue-600 text-white rounded-lg shadow-md p-8 flex-col items-center transition-all duration-300 hover:shadow-lg">
                     <h2 className="text-2xl font-bold mb-4">Path has been found!</h2>
-                    <p>Time Taken: 10000 seconds</p>
-                    <p>Articles Checked: 6</p>
-                    <p>Articles Passed: 7</p>
+                    <p>Time Taken: {Result.Duration}</p>
+                    <p>Articles Checked: {Result.Links}</p>
+                    <p>Articles Passed: {Result.Degrees}</p>
                 </div>
                 <div className="grid grid-cols-1 gap-10 items-center justify-center md:grid-cols-2 lg:grid-cols-3 mt-8">
                     {articleList.map((list, index) => (
@@ -59,13 +47,7 @@ export default function Result() {
                         </div>
                     ))}
                 </div>
-            </div>
-                {/* <Image 
-                    src="/f1.gif" 
-                    alt="Your Image" 
-                    width={300}
-                    height={300}
-                    className="rounded-full" /> */}
+                </div>)}
             </div>
             <div class="wave">
                 <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -75,3 +57,4 @@ export default function Result() {
         </main>
     )
 }
+
