@@ -23,7 +23,7 @@ func main() {
 	switch option {
 	case "1":
 		// Hardcode the start and end articles
-		startURL := ArticleURL(startArticle)
+	startURL := ArticleURL(startArticle)
 	endURL := ArticleURL(targetArticle)
 
 	var path []string
