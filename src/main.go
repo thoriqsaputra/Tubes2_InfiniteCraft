@@ -59,7 +59,7 @@ func main() {
 			}
 		}
 		fmt.Println()
-		fmt.Printf("Time Taken (ms): %v\n", duration)
+		fmt.Printf("Time Taken (ms): %v\n", duration.Milliseconds())
 	}
 
 	case "2":
