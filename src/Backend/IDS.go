@@ -5,7 +5,7 @@ import (
 	"strings"
     "container/list"
     "github.com/gocolly/colly"
-
+	"net/url"
 )
 
 type Cache struct {
@@ -19,6 +19,7 @@ type entry struct {
     value interface{}
 }
 
+// Cache Related
 func New(maxEntries int) *Cache {
     return &Cache{
         maxEntries: maxEntries,
@@ -71,7 +72,9 @@ func (c *Cache) removeElement(e *list.Element) {
     delete(c.cache, kv.key)
 }
 
-func fetchPageLinks(pageName string) (map[string]struct{}, error) {
+
+
+func fetchPageLinks(pageName string, lang string) (map[string]struct{}, error) {
     c := colly.NewCollector()
 
     links := make(map[string]struct{})
@@ -88,7 +91,7 @@ func fetchPageLinks(pageName string) (map[string]struct{}, error) {
         links[pageTitle] = struct{}{}
     })
 
-    err := c.Visit("https://en.wikipedia.org/wiki/" + pageName)
+    err := c.Visit("https://" + lang + ".wikipedia.org/wiki/" + pageName)
     if err != nil {
         return nil, err
     }
@@ -98,13 +101,13 @@ func fetchPageLinks(pageName string) (map[string]struct{}, error) {
 
 var linkCache = New(10000);
 
-func fetchPageLinksCached(pageName string) (map[string]struct{}, error) {
+func fetchPageLinksCached(pageName string, lang string) (map[string]struct{}, error) {
     links, ok := linkCache.Get(pageName)
     if ok {
         return links.(map[string]struct{}), nil
     }
 
-    links, err := fetchPageLinks(pageName)
+    links, err := fetchPageLinks(pageName, lang)
     if err != nil {
         return nil, err
     }
@@ -120,29 +123,34 @@ type Node struct {
     Children []string
 }
 
-func workers(id int, jobs <-chan string, results chan<- *Node) {
-    for pageName := range jobs {
-        links, err := fetchPageLinksCached(pageName)
+type job struct {
+    pageName string
+    lang     string
+}
+
+func workers(id int, jobs <-chan job, results chan<- *Node) {
+    for j := range jobs {
+        links, err := fetchPageLinksCached(j.pageName, j.lang)
         if err != nil {
-            log.Printf("Failed to fetch links for page %s: %v", pageName, err)
+            log.Printf("Failed to fetch links for page %s: %v", j.pageName, err)
             continue
         }
         children := make([]string, 0, len(links))
         for link := range links {
             children = append(children, link)
         }
-        results <- &Node{pageName, nil, 0, children}
+        results <- &Node{j.pageName, nil, 0, children}
     }
 }
 
 
 var articlesChecked int
 
-func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
+func DFS(start, goal string, maxDepth int, visited map[string]bool, startLang, goalLang string) *Node {
     stack := []*Node{{start, []string{start}, 0, nil}}
 
     // Create a channel for jobs and a channel for results
-    jobs := make(chan string, 100)
+    jobs := make(chan job, 100)
     results := make(chan *Node, 100)
 
     // Start a fixed number of worker goroutines
@@ -161,7 +169,7 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
         if node.Depth < maxDepth {
             if node.Children == nil {
                 // Send the page name to the jobs channel
-                jobs <- node.Name
+                jobs <- job{node.Name, startLang}
                 // Receive the result from the results channel
                 newNode := <-results
                 node.Children = newNode.Children
@@ -186,17 +194,40 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool) *Node {
 }
 
 
-func IDS(start, goal string, maxDepth int) []string {
+func IDS(startURL, goalURL string, maxDepth int) []string {
+    start, startLang, err := extractPageNameAndLang(startURL)
+    if err != nil {
+        log.Printf("Failed to extract page name from URL %s: %v", startURL, err)
+        return nil
+    }
+
+    goal, goalLang, err := extractPageNameAndLang(goalURL)
+    if err != nil {
+        log.Printf("Failed to extract page name from URL %s: %v", goalURL, err)
+        return nil
+    }
+
     for depth := 0; depth <= maxDepth; depth++ {
         visited := make(map[string]bool)
         visited[start] = true
-        node := DFS(start, goal, depth, visited)
+        node := DFS(start, goal, depth, visited, startLang, goalLang)
         if node != nil {
             return node.Path
         }
     }
     return nil
 }
+
+func extractPageNameAndLang(pageURL string) (string, string, error) {
+    u, err := url.Parse(pageURL)
+    if err != nil {
+        return "", "", err
+    }
+    lang := strings.Split(u.Host, ".")[0]
+    return strings.TrimPrefix(u.Path, "/wiki/"), lang, nil
+}
+
+
 
 // func main() {
 //     start := time.Now()
