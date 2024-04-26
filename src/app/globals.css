@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  height: 100vh;
+  color: rgb(var(--foreground-rgb));
+}
+
+@layer base {
+  .font-outline-2 {
+    -webkit-text-stroke: 2px black;
+  }
+  .font-outline-4 {
+    -webkit-text-stroke: 4px black;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+.moving-image {
+  position: absolute;
+  transform: translateY(-10%);
+  transform: translateX(75%);
+  animation: moveLeftAndRight 4s infinite linear; /* Adjust animation duration as needed */
+}
+
+@keyframes moveLeftAndRight {
+  0% {
+    left: 0;
+  }
+  50% {
+    left: calc(10% - 50px); /* Adjust the distance to move */
+  }
+  100% {
+    left: 0;
+  }
+}
+
+.curve {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.curve svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 88px;
+}
+
+.curve .shape-fill {
+  fill: #59D5E0;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  transform: rotate(180deg);
+}
+
+.wave svg {
+  position: relative;
+  display: block;
+  width: calc(127% + 1.3px);
+  height: 100px;
+  transform: rotateY(180deg);
+}
+
+.wave .shape-fill {
+  fill: #59D5E0;
+}
+
