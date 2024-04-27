@@ -23,13 +23,13 @@ WikiRace atau Wiki Game adalah permainan yang melibatkan Wikipedia, sebuah ensik
 
     ```cd src```
 
-4. Build the program by using : 
-
+4. Type at terminal :
+   
+    ```npm i```
+   
     ```./run.bat```
 
-    Type at terminal
-
-5. The program should be automatically launched!
+6. The program should be automatically launched!
 
 Tip : You can also use the prebuilt program by heading to the bin directory and launching the .exe file
 
