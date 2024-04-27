@@ -25,7 +25,7 @@ WikiRace atau Wiki Game adalah permainan yang melibatkan Wikipedia, sebuah ensik
 
 4. Build the program by using : 
 
-    ```dot/run.bats```
+    ```./run.bats```
 
     Type at terminal
 
@@ -34,6 +34,6 @@ WikiRace atau Wiki Game adalah permainan yang melibatkan Wikipedia, sebuah ensik
 Tip : You can also use the prebuilt program by heading to the bin directory and launching the .exe file
 
 ## Author
-13522135, Christian Justin Hendrawan
-13522141, Ahmad Thoriq Saputra
-13522146, M. Zaidan Sa'dun R.
+- 13522135, Christian Justin Hendrawan
+- 13522141, Ahmad Thoriq Saputra
+- 13522146, M. Zaidan Sa'dun R.
