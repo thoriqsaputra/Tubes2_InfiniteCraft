@@ -25,7 +25,7 @@ WikiRace atau Wiki Game adalah permainan yang melibatkan Wikipedia, sebuah ensik
 
 4. Build the program by using : 
 
-    ```./run.bats```
+    ```./run.bat```
 
     Type at terminal
 
