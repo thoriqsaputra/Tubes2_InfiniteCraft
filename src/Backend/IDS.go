@@ -129,7 +129,7 @@ func fetchPageLinks(pageName string, lang string) (map[string]struct{}, error) {
 }
 
 // Membuat cache untuk menyimpan tautan halaman
-var linkCache = New(5000);
+var linkCache = New(7000);
 
 
 // Fungsi ini menggunakan cache untuk menghindari pengambilan data yang sama berulang kali
@@ -207,7 +207,7 @@ func DFS(start, goal string, maxDepth int, visited map[string]bool, startLang, g
     var wg sync.WaitGroup
 
     // Memulai sejumlah goroutine pekerja
-    for w := 1; w <= ; w++ {
+    for w := 1; w <= 10; w++ {
         wg.Add(1)
         go func(w int) {
             defer wg.Done()
@@ -308,101 +308,30 @@ func IDS(startURL, goalURL string, maxDepth int) []string {
 }
 
 // Bonus
-func DFSMany(start, goal string, maxDepth int, visited map[string]bool, startLang, goalLang string, paths chan<- []string) {
-    stack := []*Node{{start, []string{start}, 0, nil}}
+func IDSMany(startURL, goalURL string, maxDepth, maxPaths int) [][]string {
+    allPaths := [][]string{}
+    pathCache := make(map[string]bool)
 
-    // Create a channel for jobs and a channel for results
-    jobs := make(chan job, 100)
-    results := make(chan *Node, 100)
-
-    // Create a WaitGroup
-    var wg sync.WaitGroup
-
-    // Start a fixed number of worker goroutines
-    for w := 1; w <= 10; w++ {
-        wg.Add(1)
-        go func(w int) {
-            defer wg.Done()
-            workers(w, jobs, results)
-        }(w)
-    }
-
-    // Create a separate goroutine to close the results channel after all jobs are done
-    go func() {
-        wg.Wait()
-        close(results)
-    }()
-
-    for len(stack) > 0 {
-        node := stack[len(stack)-1]
-        stack = stack[:len(stack)-1]
-
-        if node.Name == goal {
-            paths <- node.Path
-            continue
-        }
-
-        if node.Depth < maxDepth {
-            if node.Children == nil {
-                // Send the page name to the jobs channel
-                jobs <- job{node.Name, startLang}
-                // Receive the result from the results channel
-                newNode := <-results
-                node.Children = newNode.Children
+    for i := 0; i < maxPaths; i++ {
+        path := IDS(startURL, goalURL, maxDepth)
+        if path != nil {
+            // Convert the path to a string so it can be used as a map key
+            pathStr := strings.Join(path, "->")
+            if _, exists := pathCache[pathStr]; !exists {
+                allPaths = append(allPaths, path)
+                pathCache[pathStr] = true
             }
-
-            for _, link := range node.Children {
-                if !visited[link] {
-                    visited[link] = true
-                    articlesChecked++
-                    newPath := make([]string, len(node.Path)) // Create a new slice to hold the path
-                    copy(newPath, node.Path) // Copy the current node's path into the new slice
-                    newPath = append(newPath, link) // Append the link to the new path
-                    newNode := &Node{link, newPath, node.Depth + 1, nil}
-                    stack = append(stack, newNode)
-                }
-            }
-            node.Children = node.Children[:0] 
-        }
-    }
-
-    close(jobs) // Close the jobs channel after all jobs have been sent
-}
-
-func IDSMany(startURL, goalURL string, maxDepth int) [][]string {
-    start, startLang, err := extractPageNameAndLang(startURL)
-    if err != nil {
-        log.Printf("Failed to extract page name from URL %s: %v", startURL, err)
-        return nil
-    }
-
-    goal, goalLang, err := extractPageNameAndLang(goalURL)
-    if err != nil {
-        log.Printf("Failed to extract page name from URL %s: %v", goalURL, err)
-        return nil
-    }
-
-    paths := make(chan []string, 10)
-    for depth := 0; depth <= maxDepth; depth++ {
-        visited := make(map[string]bool)
-        visited[start] = true
-        go DFSMany(start, goal, depth, visited, startLang, goalLang, paths)
-    }
-
-    var solutions [][]string
-    for path := range paths {
-        solutions = append(solutions, path)
-        if len(solutions) >= 10 {
+        } else {
             break
         }
     }
 
-    return solutions
+    return allPaths
 }
 
 // func main() {
 //     start := time.Now()
-//     path := IDS("Mike_Tyson", "Joko_Widodo", 3)
+//     path := IDS("https://en.wikipedia.org/wiki/Mike_Tyson", "https://en.wikipedia.org/wiki/Joko_Widodo", 3)
 
 //     elapsed := time.Since(start)
 //     fmt.Println("Time taken:", elapsed.Milliseconds(), "ms")
