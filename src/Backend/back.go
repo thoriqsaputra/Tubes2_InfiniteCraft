@@ -73,23 +73,31 @@ func processAlgorithm(data RequestData) ResponseData {
 	if data.Method == "BFS" {
 		bfsInstance := NewBase(startURL, endURL)
 		startTime := time.Now()
+		log.Println("Start BFS")
 		paths, err = bfsInstance.Bfs()
+		log.Println("Start BFS")
 		links = bfsInstance.Visit()
+		log.Println("Start BFS")
 		duration = time.Since(startTime)
+		log.Println("Start BFS")
 		degrees = len(paths) - 1
+		log.Println("Start BFS")
 		path = make([][]string, 1)
+		log.Println("Start BFS")
 		path[0] = paths
-	} else if data.Method == "IDS" {
-		start := time.Now()
-		if (solution_type == "one") {
-			paths := IDS(startURL, endURL,5)
-			path = make([][]string, 1)
-			path[0] = paths
-			degrees = len(paths) - 1
+		log.Println("Start BFS")
+		} else if data.Method == "IDS" {
+			start := time.Now()
+			log.Println("Start IDS")
+			if (solution_type == "one") {
+				paths := IDS(startURL, endURL,5)
+				path = make([][]string, 1)
+				path[0] = paths
+				degrees = len(paths) - 1
 			} else if (solution_type == "all") {
-		path = IDSMany(startURL, endURL, 5, 20)
-		degrees = len(path) - 1
-		}
+				path = IDSMany(startURL, endURL, 5, 20)
+				degrees = len(path) - 1
+			}
 		duration = time.Since(start)
 		links = articlesChecked
 	}
@@ -97,6 +105,9 @@ func processAlgorithm(data RequestData) ResponseData {
 	if err != nil {
 		log.Fatalf("Error finding path: %v", err)
 	}
+
+	log.Println("done")
+
 	return ResponseData{
 		Path: path,
 		Links: links,

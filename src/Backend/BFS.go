@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 	"github.com/PuerkitoBio/goquery"
+	"log"
 )
 
 // Base merupakan struktur untuk menjalankan algoritma BFS
@@ -93,7 +94,7 @@ func (wr *Base) Bfs() ([]string, error) {
 			path = append([]string{getTitle(link)}, path...)
 			link = wr.pathToLink[link]
 		}
-
+		log.Println("Path: ", path)
 		if currentPage == wr.endURL {
 			return wr.buildPath(), nil
 		}
@@ -180,11 +181,11 @@ func (wr *Base) buildPath() []string {
 	currentPage := wr.endURL
 
 	for currentPage != wr.startURL {
-		path = append([]string{currentPage}, path...)
+		path = append([]string{getTitle(currentPage)}, path...)
 		currentPage = wr.pathToLink[currentPage]
 	}
 
-	path = append([]string{wr.startURL}, path...)
+	path = append([]string{getTitle(wr.startURL)}, path...)
 
 	return path
 }
