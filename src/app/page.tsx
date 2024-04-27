@@ -20,11 +20,10 @@ export default function Home() {
   const [showLoading, setShowLoading] = useState(false);
   const [isProcess, setIsProcess] = useState(false);
   const [ProcessResult, setProcessResult] = useState({});
-  const [Method, setMethod] = useState("");
+  const [Method, setMethod] = useState("IDS");
 
   const handleMethod = (method : string) => {
     setMethod(method);
-    console.log(Method);
   }
 
   useEffect(() => {
@@ -40,6 +39,7 @@ export default function Home() {
 
   const handleProcess = (result : ProcessResult) => {
     setProcessResult(result);
+    console.log(result);
     setShowLoading(false);
   }
 
@@ -86,4 +86,4 @@ export default function Home() {
       </div>
     </main>
   );
-}
+} 

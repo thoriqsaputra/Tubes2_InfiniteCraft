@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +18,7 @@ func main() {
     r.Use(cors.New(config))
 
     // Define a route
-    r.POST("/pathfinder", prosessPathFinder)
+    r.POST("pathfinder", prosessPathFinder)
     // Run the server
     r.Run(":8080")
 }
@@ -28,8 +26,9 @@ func main() {
 type RequestData struct {
 	StartArticle string `json:"start_article"`
 	TargetArticle string `json:"target_article"`
-	// SolutionType string `json:"solution_type"`
+	SolutionType string `json:"solution_type"`
 	Method string `json:"method"`
+	Language string `json:"language"`
 }
 
 type Article struct {
@@ -39,10 +38,11 @@ type Article struct {
 }
 
 type ResponseData struct {
-	Path []string `json:"path"`
+	Path [][]string `json:"path"`
 	Links int `json:"links"`
-	Duration float64 `json:"duration"`
+	Duration int64 `json:"duration"`
 	Degrees int `json:"degrees"`
+	Language string `json:"language"`
 }
 
 func prosessPathFinder(c *gin.Context) {
@@ -51,12 +51,10 @@ func prosessPathFinder(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	fmt.Println(requestData)
-
+	log.Printf("Request data: %v", requestData)
 	// Process data using your algorithm
 	result := processAlgorithm(requestData)
-
+	log.Printf("Response data: %v", result)
 	// Send result back to frontend
 	c.JSON(http.StatusOK, result)
 }
@@ -64,25 +62,36 @@ func prosessPathFinder(c *gin.Context) {
 func processAlgorithm(data RequestData) ResponseData {
 	var startURL string = data.StartArticle
 	var endURL string = data.TargetArticle
-	var path []string
+	var solution_type string = data.SolutionType
+	var path [][]string
 	var duration time.Duration
-	var err error
+	var err error 
 	var links int
 	var degrees int
+	var paths []string
 
 	if data.Method == "BFS" {
 		bfsInstance := NewBase(startURL, endURL)
 		startTime := time.Now()
-		path, err = bfsInstance.Bfs()
+		paths, err = bfsInstance.Bfs()
 		links = bfsInstance.Visit()
 		duration = time.Since(startTime)
-		degrees = len(path) - 1
+		degrees = len(paths) - 1
+		path = make([][]string, 1)
+		path[0] = paths
 	} else if data.Method == "IDS" {
 		start := time.Now()
-		path := IDS(startURL, endURL, 3)
+		if (solution_type == "one") {
+			paths := IDS(startURL, endURL,5)
+			path = make([][]string, 1)
+			path[0] = paths
+			degrees = len(paths) - 1
+			} else if (solution_type == "all") {
+		path = IDSMany(startURL, endURL, 5, 20)
+		degrees = len(path) - 1
+		}
 		duration = time.Since(start)
 		links = articlesChecked
-		degrees = len(path) - 1
 	}
 
 	if err != nil {
@@ -91,8 +100,8 @@ func processAlgorithm(data RequestData) ResponseData {
 	return ResponseData{
 		Path: path,
 		Links: links,
-		Duration: duration.Seconds(),
+		Duration: int64(duration.Milliseconds()),
 		Degrees: degrees,
+		Language: data.Language,
 	}
 }
-

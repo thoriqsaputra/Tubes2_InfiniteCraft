@@ -102,7 +102,7 @@ func fetchPageLinks(pageName string, lang string) (map[string]struct{}, error) {
     links := make(map[string]struct{})
 
     // Mengatur fungsi callback yang akan dipanggil ketika elemen HTML dengan selector "a[href]" ditemukan
-    c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+    c.OnHTML("div#mw-content-text p a[href]", func(e *colly.HTMLElement) {
         // Mengambil nilai dari atribut href
         link := e.Attr("href")
         // Jika tautan tidak dimulai dengan "/wiki/", kita abaikan

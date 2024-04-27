@@ -1,10 +1,63 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
-
+import { useEffect } from 'react';
 
 export default function Result({Result, showLoading, method}) {
+    const pedro = new Audio('pedro.mp3');
+    const smooth = new Audio('smooth.mp3');
+    const article = Result.path;
 
-    const articleList = Result.Path;
+    // const [articleDetails, setArticleDetails] = useState([]);
+    
+    // function constructWikipediaURL(language, inputValue) {
+    //     const wikipediaEndpoint = `https://${language}.wikipedia.org/w/api.php`;
+    //     const wikipediaParams =
+    //         `?action=query` +
+    //         `&format=json` +
+    //         `&gpssearch=${inputValue}` +
+    //         `&generator=prefixsearch` +
+    //         `&prop=pageprops%7Cpageimages%7Cpageterms` +
+    //         `&redirects=` +
+    //         `&ppprop=displaytitle` +
+    //         `&piprop=thumbnail` +
+    //         `&pithumbsize=160` +
+    //         `&pilimit=30` +
+    //         `&wbptterms=description` +
+    //         `&gpsnamespace=0` +
+    //         `&gpslimit=5` +
+    //         `&origin=*`;
+    
+    //     return wikipediaEndpoint + wikipediaParams;
+    // }
+
+    // useEffect(() => {
+    //     const fethDetails = async () => {
+    //         const detailPromises = Result.path.map(async (path) => {
+
+    // }, [Result]);
+    
+
+    useEffect(() => {
+        if (showLoading) {
+            if(method === "BFS") {
+                pedro.loop = true;
+                pedro.play();
+            } else {
+                smooth.loop = true;
+                smooth.play();
+            }
+        } else {
+            if(method === "IDS") {
+                pedro.pause();
+                pedro.currentTime = 0;
+            } else {
+                smooth.pause();
+                smooth.currentTime = 0;
+            }
+        }
+    }, [showLoading]);
 
     return (
         <main className='min-h-screen bg-gradient-radial from-amber-600 to-amber-300 relative'>
@@ -17,28 +70,28 @@ export default function Result({Result, showLoading, method}) {
             </div>
             <div className="min-h-screen flex items-center justify-center">
                 {showLoading ? (
-                    <Image alt="loading" src={method === "BFS" ? '/f1.gif' : '/mclaren.gif'} width={400} height={400}
+                    <Image alt="loading" src={method === "IDS" ? '/f1.gif' : '/mclaren.gif'} width={400} height={400}
                     className='rounded-full' />
                 ) : 
                 (
                 <div className="flex flex-col gap-8 justify-center items-center px-4 py-[100px]">
                 <div className="bg-blue-600 text-white rounded-lg shadow-md p-8 flex-col items-center transition-all duration-300 hover:shadow-lg">
                     <h2 className="text-2xl font-bold mb-4">Path has been found!</h2>
-                    <p>Time Taken: {Result.Duration}</p>
-                    <p>Articles Checked: {Result.Links}</p>
-                    <p>Articles Passed: {Result.Degrees}</p>
+                    <p>Time Taken: {Result.duration} ms</p>
+                    <p>Articles Checked: {Result.links}</p>
+                    <p>Degrees: {Result.degrees}</p>
                 </div>
                 <div className="grid grid-cols-1 gap-10 items-center justify-center md:grid-cols-2 lg:grid-cols-3 mt-8">
-                    {articleList.map((list, index) => (
+                    {article.map((list, index) => (
                         <div key={index} className="bg-white min-w-[300px] outline outline-offset-2 outline-2 outline-red-600 rounded-lg shadow-md flex-col justify-center transition-all duration-300 hover:shadow-lg hover:shadow-sky-600">
                             <h2 className="text-2xl text-center text-black font-bold my-4">Path {index + 1}</h2>
                             <ul className=''>
                                 {list.map((article, idx) => (
                                     <li key={idx} className="text-blue-600 hover:text-white py-4 px-3 rounded-xl hover:bg-orange-400 transition-all duration-300 transform hover:scale-105">
-                                    <Link href={article.url} className="block w-full h-full">
+                                    <Link href={`https://${Result.language}.wikipedia.org/wiki/${encodeURIComponent(article)}`} className="block w-full h-full">
                                         <div className='flex flex-row justify-normal items-center gap-10'>
-                                            <Image src={article.image} alt="thumbnail" width={50} height={50} className="rounded-md" />
-                                            <span>{article.title}</span>
+                                            {/* <Image src={article.image} alt="thumbnail" width={50} height={50} className="rounded-md" /> */}
+                                            <span>{article}</span>
                                         </div>
                                     </Link>
                                 </li>

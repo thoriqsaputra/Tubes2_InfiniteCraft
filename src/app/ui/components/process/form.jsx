@@ -24,10 +24,13 @@ export default function ProcessForm({onResult, onMethod, showLoading}) {
         e.preventDefault();
         try {
             const data = {
-                start: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+startValue,
-                destination: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+destinationValue,
+                start_article: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+startValue,
+                target_article: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+destinationValue,
+                solution_type: selectedSolution,
                 method: selectedMethod,
+                language: selectedLanguage,
             };
+            console.log(data);
             const response = await fetch('http://localhost:8080/pathfinder', {
                 method: 'POST',
                 headers: {
@@ -35,7 +38,7 @@ export default function ProcessForm({onResult, onMethod, showLoading}) {
                 },
                 body: JSON.stringify(data),
             });
-            
+            console.log(response);
             if (!response.ok) {
                 const message = `An error has occured: ${response.status}`;
                 throw new Error(message);
@@ -127,7 +130,7 @@ export default function ProcessForm({onResult, onMethod, showLoading}) {
                 <RadioMethod handleOptionChange={handleMethodChange} selectedOption={selectedMethod}/>
             </div>
         </div>
-        <RadioSolution handleOptionChange={handleSolutionChange} selectedOption={selectedSolution}/>
+        {selectedMethod === "IDS" && <RadioSolution handleOptionChange={handleSolutionChange} selectedOption={selectedSolution}/>}
     </div>
   );
 }
