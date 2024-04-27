@@ -15,9 +15,11 @@ export default function Result({Result, showLoading, method}) {
             if (showLoading) {
                 if (method === "BFS") {
                     pedro.loop = true;
+                    pedro.volume = 0.5;
                     pedro.play();
                 } else {
                     smooth.loop = true;
+                    pedro.volume = 0.5;
                     smooth.play();
                 }
             } else {
