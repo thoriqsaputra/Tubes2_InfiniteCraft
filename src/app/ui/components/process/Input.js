@@ -60,7 +60,7 @@ const Input = ({ placeholder, handleChange, inputValue, language, disable }) => 
             </div>
             <div>
                 {showRecommendation && (
-                    <ul className="absolute w-[500px] bg-white border  border-gray-300 rounded mt-1 shadow-md max-h-[250px] overflow-y-auto">
+                    <ul className="absolute z-40 w-[500px] bg-white border  border-gray-300 rounded mt-1 shadow-md max-h-[250px] overflow-y-auto">
                         {Object.keys(searchResults).map((key, index) => (
                             <li
                                 key={index}

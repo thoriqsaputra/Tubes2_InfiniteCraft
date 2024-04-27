@@ -28,7 +28,7 @@ export default function ProcessForm({onResult, onMethod, showLoading}) {
                 target_article: 'https://'+selectedLanguage+'.wikipedia.org/wiki/'+destinationValue,
                 solution_type: selectedSolution,
                 method: selectedMethod,
-                language: selectedLanguage,
+                language: selectedLanguage
             };
             console.log(data);
             const response = await fetch('http://localhost:8080/pathfinder', {

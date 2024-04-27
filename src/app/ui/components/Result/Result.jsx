@@ -39,25 +39,25 @@ export default function Result({Result, showLoading, method}) {
     // }, [Result]);
     
 
-    useEffect(() => {
-        if (showLoading) {
-            if(method === "BFS") {
-                pedro.loop = true;
-                pedro.play();
-            } else {
-                smooth.loop = true;
-                smooth.play();
-            }
-        } else {
-            if(method === "IDS") {
-                pedro.pause();
-                pedro.currentTime = 0;
-            } else {
-                smooth.pause();
-                smooth.currentTime = 0;
-            }
-        }
-    }, [showLoading]);
+    // useEffect(() => {
+    //     if (showLoading) {
+    //         if(method === "BFS") {
+    //             pedro.loop = true;
+    //             pedro.play();
+    //         } else {
+    //             smooth.loop = true;
+    //             smooth.play();
+    //         }
+    //     } else {
+    //         if(method === "IDS") {
+    //             pedro.pause();
+    //             pedro.currentTime = 0;
+    //         } else {
+    //             smooth.pause();
+    //             smooth.currentTime = 0;
+    //         }
+    //     }
+    // }, [showLoading]);
 
     return (
         <main className='min-h-screen bg-gradient-radial from-amber-600 to-amber-300 relative'>
@@ -75,15 +75,15 @@ export default function Result({Result, showLoading, method}) {
                 ) : 
                 (
                 <div className="flex flex-col gap-8 justify-center items-center px-4 py-[100px]">
-                <div className="bg-blue-600 text-white rounded-lg shadow-md p-8 flex-col items-center transition-all duration-300 hover:shadow-lg">
+                <div className="bg-gradient-to-b from-cyan-400 to-cyan-500 text-white rounded-lg shadow-md p-8 flex-col items-center transition-all duration-300 hover:shadow-lg">
                     <h2 className="text-2xl font-bold mb-4">Path has been found!</h2>
                     <p>Time Taken: {Result.duration} ms</p>
                     <p>Articles Checked: {Result.links}</p>
                     <p>Degrees: {Result.degrees}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-10 items-center justify-center md:grid-cols-2 lg:grid-cols-3 mt-8">
+                <div className="grid grid-cols-3 gap-10 items-center justify-center md:grid-cols-2 lg:grid-cols-3 mt-8">
                     {article.map((list, index) => (
-                        <div key={index} className="bg-white min-w-[300px] outline outline-offset-2 outline-2 outline-red-600 rounded-lg shadow-md flex-col justify-center transition-all duration-300 hover:shadow-lg hover:shadow-sky-600">
+                        <div key={index} className="bg-gradient-to-bl from-red-100 to-slate-200 min-w-[300px] outline outline-offset-2 outline-2 outline-red-600 rounded-lg shadow-md flex-col justify-center transition-all duration-300 hover:shadow-lg hover:shadow-sky-600">
                             <h2 className="text-2xl text-center text-black font-bold my-4">Path {index + 1}</h2>
                             <ul className=''>
                                 {list.map((article, idx) => (

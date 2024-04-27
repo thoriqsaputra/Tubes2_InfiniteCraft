@@ -16,9 +16,10 @@ export default function Page() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <StepCard stepNumber="1" title="Choose Your Language" />
               <StepCard stepNumber="2" title="Select Pathfinding Method" />
-              <StepCard stepNumber="3" title="Enter Start & Destination Links" />
-              <StepCard stepNumber="4" title="Click 'Start Race' Button" />
-              <StepCard stepNumber="5" title="View Your Calculated Path" />
+              <StepCard stepNumber="3" title="Choose Solution For IDS Method" />
+              <StepCard stepNumber="4" title="Enter Start & Destination Links" />
+              <StepCard stepNumber="5" title="Click 'Start Race' Button" />
+              <StepCard stepNumber="6" title="View Your Calculated Path" />
             </div>
           </div>
         </div>
