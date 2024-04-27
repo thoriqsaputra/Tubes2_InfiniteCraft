@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 
 const Input = ({ placeholder, handleChange, inputValue, language, disable }) => {
     const [searchResults, setSearchResults] = useState([]);

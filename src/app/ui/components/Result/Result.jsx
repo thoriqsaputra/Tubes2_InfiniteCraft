@@ -5,59 +5,38 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 
 export default function Result({Result, showLoading, method}) {
-    const pedro = new Audio('pedro.mp3');
-    const smooth = new Audio('smooth.mp3');
     const article = Result.path;
-
-    // const [articleDetails, setArticleDetails] = useState([]);
     
-    // function constructWikipediaURL(language, inputValue) {
-    //     const wikipediaEndpoint = `https://${language}.wikipedia.org/w/api.php`;
-    //     const wikipediaParams =
-    //         `?action=query` +
-    //         `&format=json` +
-    //         `&gpssearch=${inputValue}` +
-    //         `&generator=prefixsearch` +
-    //         `&prop=pageprops%7Cpageimages%7Cpageterms` +
-    //         `&redirects=` +
-    //         `&ppprop=displaytitle` +
-    //         `&piprop=thumbnail` +
-    //         `&pithumbsize=160` +
-    //         `&pilimit=30` +
-    //         `&wbptterms=description` +
-    //         `&gpsnamespace=0` +
-    //         `&gpslimit=5` +
-    //         `&origin=*`;
-    
-    //     return wikipediaEndpoint + wikipediaParams;
-    // }
+    useEffect(() => {
+        const pedro = new Audio('pedro.mp3');
+        const smooth = new Audio('smooth.mp3');
 
-    // useEffect(() => {
-    //     const fethDetails = async () => {
-    //         const detailPromises = Result.path.map(async (path) => {
+        const handleAudio = () => {
+            if (showLoading) {
+                if (method === "BFS") {
+                    pedro.loop = true;
+                    pedro.play();
+                } else {
+                    smooth.loop = true;
+                    smooth.play();
+                }
+            } else {
+                pedro.pause();
+                smooth.pause();
+                pedro.currentTime = 0;
+                smooth.currentTime = 0;
+            }
+        };
 
-    // }, [Result]);
-    
+        handleAudio();
 
-    // useEffect(() => {
-    //     if (showLoading) {
-    //         if(method === "BFS") {
-    //             pedro.loop = true;
-    //             pedro.play();
-    //         } else {
-    //             smooth.loop = true;
-    //             smooth.play();
-    //         }
-    //     } else {
-    //         if(method === "IDS") {
-    //             pedro.pause();
-    //             pedro.currentTime = 0;
-    //         } else {
-    //             smooth.pause();
-    //             smooth.currentTime = 0;
-    //         }
-    //     }
-    // }, [showLoading]);
+        return () => {
+            pedro.pause();
+            smooth.pause();
+            pedro.currentTime = 0;
+            smooth.currentTime = 0;
+        };
+    }, [showLoading, method]);
 
     return (
         <main className='min-h-screen bg-gradient-radial from-amber-600 to-amber-300 relative'>
